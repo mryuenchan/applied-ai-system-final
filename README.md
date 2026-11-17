@@ -1,3 +1,4 @@
+
 # 🎵 Music Recommender Simulation
 
 ## Project Summary
@@ -11,7 +12,7 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+My version loads 18 fictional songs from a CSV file and compares each song with a user profile. It gives points for matching genre and mood and for having an energy level close to the user's target. The program then ranks the songs, shows the top five with explanations, and lets me compare different profiles and scoring weights.
 
 ---
 
@@ -60,7 +61,7 @@ This profile represents a user who prefers chill lofi music with a fairly calm e
 6. Save the song and its completed score.
 7. Repeat the scoring process for every song.
 8. Sort the songs from highest score to lowest score.
-9. Return the three songs with the highest scores.
+9. Return the five songs with the highest scores.
 
 ### Scoring Rule
 
@@ -120,7 +121,7 @@ Sort all songs from highest score to lowest score
         ↓
 
 OUTPUT
-Display the top 3 recommended songs
+Display the top 5 recommended songs
 ```
 
 ### Potential Biases
@@ -141,6 +142,7 @@ The system also requires exact genre and mood matches. It does not understand th
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+   ```
 
 2. Install dependencies
 
@@ -174,8 +176,110 @@ The default user profile is:
 user_prefs = {
     "favorite_genre": "pop",
     "favorite_mood": "happy",
-    "target_energy": 0.8
+    "target_energy": 0.9
 }
+```
+
+The program displays five recommendations for each of four user profiles. This is the output from running `python -m src.main`:
+
+```text
+Loaded songs: 18
+
+============================================================
+PROFILE: High-Energy Pop
+Genre: pop | Mood: happy | Energy: 0.9
+============================================================
+1. Sunrise City by Neon Echo
+   Score: 3.92
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.92)
+
+2. Gym Hero by Max Pulse
+   Score: 2.97
+   Because: genre match (+2.0); energy similarity (+0.97)
+
+3. Rooftop Lights by Indigo Parade
+   Score: 1.86
+   Because: mood match (+1.0); energy similarity (+0.86)
+
+4. Storm Runner by Voltline
+   Score: 0.99
+   Because: energy similarity (+0.99)
+
+5. Electric Horizon by Pixel Current
+   Score: 0.98
+   Because: energy similarity (+0.98)
+
+============================================================
+PROFILE: Chill Lofi
+Genre: lofi | Mood: chill | Energy: 0.4
+============================================================
+1. Midnight Coding by LoRoom
+   Score: 3.98
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.98)
+
+2. Library Rain by Paper Lanterns
+   Score: 3.95
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.95)
+
+3. Focus Flow by LoRoom
+   Score: 3.00
+   Because: genre match (+2.0); energy similarity (+1.00)
+
+4. Spacewalk Thoughts by Orbit Bloom
+   Score: 1.88
+   Because: mood match (+1.0); energy similarity (+0.88)
+
+5. Coffee Shop Stories by Slow Stereo
+   Score: 0.97
+   Because: energy similarity (+0.97)
+
+============================================================
+PROFILE: Deep Intense Rock
+Genre: rock | Mood: intense | Energy: 0.9
+============================================================
+1. Storm Runner by Voltline
+   Score: 3.99
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.99)
+
+2. Gym Hero by Max Pulse
+   Score: 1.97
+   Because: mood match (+1.0); energy similarity (+0.97)
+
+3. Electric Horizon by Pixel Current
+   Score: 0.98
+   Because: energy similarity (+0.98)
+
+4. Sunrise City by Neon Echo
+   Score: 0.92
+   Because: energy similarity (+0.92)
+
+5. Iron Pulse by Black Circuit
+   Score: 0.92
+   Because: energy similarity (+0.92)
+
+============================================================
+PROFILE: Conflicting Classical/Intense
+Genre: classical | Mood: intense | Energy: 0.95
+============================================================
+1. Quiet Strings by Aurora Hall
+   Score: 2.30
+   Because: genre match (+2.0); energy similarity (+0.30)
+
+2. Gym Hero by Max Pulse
+   Score: 1.98
+   Because: mood match (+1.0); energy similarity (+0.98)
+
+3. Storm Runner by Voltline
+   Score: 1.96
+   Because: mood match (+1.0); energy similarity (+0.96)
+
+4. Iron Pulse by Black Circuit
+   Score: 0.97
+   Because: energy similarity (+0.97)
+
+5. Electric Horizon by Pixel Current
+   Score: 0.93
+   Because: energy similarity (+0.93)
 ```
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or demo video link here -->
@@ -189,6 +293,10 @@ Use this section to document the experiments you ran. For example:
 - What happened when you changed the weight on genre from 2.0 to 0.5
 - What happened when you added tempo or valence to the score
 - How did your system behave for different types of users
+
+I tested four profiles: High-Energy Pop, Chill Lofi, Deep Intense Rock, and Conflicting Classical/Intense. The recommendations changed with each profile. For example, `Sunrise City` ranked first for High-Energy Pop, while `Midnight Coding` ranked first for Chill Lofi.
+
+I also compared the original weights (genre = 2, mood = 1, energy = 1) with a temporary scoring experiment (genre = 1, mood = 1, energy = 2). For the Conflicting Classical/Intense profile, `Quiet Strings` was originally first with 2.30 points. With more emphasis on energy, `Gym Hero` moved into first place with 2.96 points and `Storm Runner` into second with 2.92 points. The change made the results fit the requested energy and mood better, but neither song matched the requested classical genre. This showed me that changing the weights affects what the recommender prioritizes.
 
 ---
 
@@ -204,6 +312,8 @@ Examples:
 
 You will go deeper on this in your model card.
 
+The 18-song catalog is too small to represent everyone's taste. The model also gives a lot of importance to an exact genre match, which can lead to narrow results. For example, it ranked the peaceful, low-energy `Quiet Strings` first for a user who asked for intense, high-energy classical music. It also cannot recognize that moods like `chill`, `relaxed`, and `peaceful` are similar, and it has no real listener feedback to test whether people enjoy its choices.
+
 ---
 
 ## Reflection
@@ -217,100 +327,6 @@ Write 1 to 2 paragraphs here about what you learned:
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
 
-Loaded songs: 18
->> 
->> ============================================================
->> PROFILE: High-Energy Pop
->> Genre: pop | Mood: happy | Energy: 0.9
->> ============================================================
->> 1. Sunrise City by Neon Echo
->>    Score: 3.92
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.92)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 2.97
->>    Because: genre match (+2.0); energy similarity (+0.97)
->> 
->> 3. Rooftop Lights by Indigo Parade
->>    Score: 1.86
->>    Because: mood match (+1.0); energy similarity (+0.86)
->> 
->> 4. Storm Runner by Voltline
->>    Score: 0.99
->>    Because: energy similarity (+0.99)
->> 
->> 5. Electric Horizon by Pixel Current
->>    Score: 0.98
->>    Because: energy similarity (+0.98)
->> 
->> ============================================================
->> PROFILE: Chill Lofi
->> Genre: lofi | Mood: chill | Energy: 0.4
->> ============================================================
->> 1. Midnight Coding by LoRoom
->>    Score: 3.98
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.98)
->> 
->> 2. Library Rain by Paper Lanterns
->>    Score: 3.95
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.95)
->> 
->> 3. Focus Flow by LoRoom
->>    Score: 3.00
->>    Because: genre match (+2.0); energy similarity (+1.00)
->> 
->> 4. Spacewalk Thoughts by Orbit Bloom
->>    Score: 1.88
->>    Because: mood match (+1.0); energy similarity (+0.88)
->> 
->> 5. Coffee Shop Stories by Slow Stereo
->>    Score: 0.97
->>    Because: energy similarity (+0.97)
->> 
->> ============================================================
->> PROFILE: Deep Intense Rock
->> Genre: rock | Mood: intense | Energy: 0.9
->> ============================================================
->> 1. Storm Runner by Voltline
->>    Score: 3.99
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.99)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 1.97
->>    Because: mood match (+1.0); energy similarity (+0.97)
->> 
->> 3. Electric Horizon by Pixel Current
->>    Score: 0.98
->>    Because: energy similarity (+0.98)
->> 
->> 4. Sunrise City by Neon Echo
->>    Score: 0.92
->>    Because: energy similarity (+0.92)
->> 
->> 5. Iron Pulse by Black Circuit
->>    Score: 0.92
->>    Because: energy similarity (+0.92)
->> 
->> ============================================================
->> PROFILE: Conflicting Classical/Intense
->> Genre: classical | Mood: intense | Energy: 0.95
->> ============================================================
->> 1. Quiet Strings by Aurora Hall
->>    Score: 2.30
->>    Because: genre match (+2.0); energy similarity (+0.30)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 1.98
->>    Because: mood match (+1.0); energy similarity (+0.98)
->> 
->> 3. Storm Runner by Voltline
->>    Score: 1.96
->>    Because: mood match (+1.0); energy similarity (+0.96)
->> 
->> 4. Iron Pulse by Black Circuit
->>    Score: 0.97
->>    Because: energy similarity (+0.97)
->> 
->> 5. Electric Horizon by Pixel Current
->>    Score: 0.93
->>    Because: energy similarity (+0.93)
+I learned that a music recommender does not need a complicated model to produce personalized-looking results. It can start with song features, compare them to a user profile, assign scores, and rank the songs. The energy score was especially useful because it rewards songs that are close to a target rather than always choosing the highest-energy song.
+
+I was surprised that a genre match could outweigh the mood and energy a user wanted. The conflicting classical profile showed me that the weights I choose can create results that do not feel right, even when the calculation is correct. AI helped me work through the formula and think of edge cases, but I still needed to check the scores and outputs myself. Next I would experiment with related moods, more features, and real user feedback.

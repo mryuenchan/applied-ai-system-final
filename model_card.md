@@ -1,3 +1,4 @@
+
 # 🎧 Model Card: Music Recommender Simulation
 
 ## 1. Model Name
@@ -43,7 +44,7 @@ The catalog contains 18 fictional songs. Each song includes:
 
 The catalog includes genres such as pop, lofi, rock, ambient, jazz, classical, hip hop, electronic, folk, reggae, R&B, metal, and country.
 
-I expanded the starter dataset by adding eight new fictional songs. This created more variety, but the catalog is still very small. It does not represent every genre, mood, artist, language, or type of listener.
+I expanded the starter dataset by adding eight new fictional songs. This created more variety, but the catalog is still very small. It does not represent every genre, mood, artist, language, or type of listener. Because the dataset has no actual listener ratings, it cannot provide ground-truth labels for measuring recommendation accuracy.
 
 ---
 
@@ -93,113 +94,133 @@ The Chill Lofi profile preferred calm songs with energy near 0.40. The Deep Inte
 **Deep Intense Rock and Conflicting Classical/Intense:**  
 Both profiles requested intense and energetic music, but their preferred genres were different. Storm Runner matched all three preferences for the rock profile. Quiet Strings ranked first for the classical profile because the strong genre weight overpowered its weaker mood and energy matches.
 
+**High-Energy Pop and Deep Intense Rock:**  
+Both profiles requested high energy, but `Sunrise City` ranked first for pop/happy while `Storm Runner` ranked first for rock/intense. Their different genre and mood matches made the difference.
+
+**High-Energy Pop and Conflicting Classical/Intense:**  
+Both requested energetic music. `Sunrise City` matched the pop user's genre and mood, while the classical user's high genre weight pushed the much calmer `Quiet Strings` into first place.
+
+**Chill Lofi and Conflicting Classical/Intense:**  
+`Midnight Coding` matched the chill user's genre, mood, and energy, but `Quiet Strings` ranked first for the conflicting user mainly because of its genre. The second profile showed that matching one feature can be misleading.
+
 ### Weight-Shift Experiment
 
 I temporarily reduced the genre match from 2 points to 1 point and increased energy similarity from a maximum of 1 point to a maximum of 2 points.
 
 After the change, high-energy intense songs ranked above Quiet Strings for the conflicting profile. This result seemed more accurate for that user because the requested energy was 0.95.
 
+For the conflicting profile, the top three changed as follows:
+
+```text
+Original:                        Increased energy weight:
+1. Quiet Strings — 2.30         1. Gym Hero — 2.96
+2. Gym Hero — 1.98              2. Storm Runner — 2.92
+3. Storm Runner — 1.96          3. Iron Pulse — 1.94
+```
+
 However, the experimental weights may be less accurate for users who care more about genre than energy. This showed that changing weights can improve one type of recommendation while making another type less accurate.
 
 ### Recommendation Outputs
 
+```text
 Loaded songs: 18
->> 
->> ============================================================
->> PROFILE: High-Energy Pop
->> Genre: pop | Mood: happy | Energy: 0.9
->> ============================================================
->> 1. Sunrise City by Neon Echo
->>    Score: 3.92
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.92)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 2.97
->>    Because: genre match (+2.0); energy similarity (+0.97)
->> 
->> 3. Rooftop Lights by Indigo Parade
->>    Score: 1.86
->>    Because: mood match (+1.0); energy similarity (+0.86)
->> 
->> 4. Storm Runner by Voltline
->>    Score: 0.99
->>    Because: energy similarity (+0.99)
->> 
->> 5. Electric Horizon by Pixel Current
->>    Score: 0.98
->>    Because: energy similarity (+0.98)
->> 
->> ============================================================
->> PROFILE: Chill Lofi
->> Genre: lofi | Mood: chill | Energy: 0.4
->> ============================================================
->> 1. Midnight Coding by LoRoom
->>    Score: 3.98
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.98)
->> 
->> 2. Library Rain by Paper Lanterns
->>    Score: 3.95
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.95)
->> 
->> 3. Focus Flow by LoRoom
->>    Score: 3.00
->>    Because: genre match (+2.0); energy similarity (+1.00)
->> 
->> 4. Spacewalk Thoughts by Orbit Bloom
->>    Score: 1.88
->>    Because: mood match (+1.0); energy similarity (+0.88)
->> 
->> 5. Coffee Shop Stories by Slow Stereo
->>    Score: 0.97
->>    Because: energy similarity (+0.97)
->> 
->> ============================================================
->> PROFILE: Deep Intense Rock
->> Genre: rock | Mood: intense | Energy: 0.9
->> ============================================================
->> 1. Storm Runner by Voltline
->>    Score: 3.99
->>    Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.99)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 1.97
->>    Because: mood match (+1.0); energy similarity (+0.97)
->> 
->> 3. Electric Horizon by Pixel Current
->>    Score: 0.98
->>    Because: energy similarity (+0.98)
->> 
->> 4. Sunrise City by Neon Echo
->>    Score: 0.92
->>    Because: energy similarity (+0.92)
->> 
->> 5. Iron Pulse by Black Circuit
->>    Score: 0.92
->>    Because: energy similarity (+0.92)
->> 
->> ============================================================
->> PROFILE: Conflicting Classical/Intense
->> Genre: classical | Mood: intense | Energy: 0.95
->> ============================================================
->> 1. Quiet Strings by Aurora Hall
->>    Score: 2.30
->>    Because: genre match (+2.0); energy similarity (+0.30)
->> 
->> 2. Gym Hero by Max Pulse
->>    Score: 1.98
->>    Because: mood match (+1.0); energy similarity (+0.98)
->> 
->> 3. Storm Runner by Voltline
->>    Score: 1.96
->>    Because: mood match (+1.0); energy similarity (+0.96)
->> 
->> 4. Iron Pulse by Black Circuit
->>    Score: 0.97
->>    Because: energy similarity (+0.97)
->> 
->> 5. Electric Horizon by Pixel Current
->>    Score: 0.93
->>    Because: energy similarity (+0.93)
+
+============================================================
+PROFILE: High-Energy Pop
+Genre: pop | Mood: happy | Energy: 0.9
+============================================================
+1. Sunrise City by Neon Echo
+   Score: 3.92
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.92)
+
+2. Gym Hero by Max Pulse
+   Score: 2.97
+   Because: genre match (+2.0); energy similarity (+0.97)
+
+3. Rooftop Lights by Indigo Parade
+   Score: 1.86
+   Because: mood match (+1.0); energy similarity (+0.86)
+
+4. Storm Runner by Voltline
+   Score: 0.99
+   Because: energy similarity (+0.99)
+
+5. Electric Horizon by Pixel Current
+   Score: 0.98
+   Because: energy similarity (+0.98)
+
+============================================================
+PROFILE: Chill Lofi
+Genre: lofi | Mood: chill | Energy: 0.4
+============================================================
+1. Midnight Coding by LoRoom
+   Score: 3.98
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.98)
+
+2. Library Rain by Paper Lanterns
+   Score: 3.95
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.95)
+
+3. Focus Flow by LoRoom
+   Score: 3.00
+   Because: genre match (+2.0); energy similarity (+1.00)
+
+4. Spacewalk Thoughts by Orbit Bloom
+   Score: 1.88
+   Because: mood match (+1.0); energy similarity (+0.88)
+
+5. Coffee Shop Stories by Slow Stereo
+   Score: 0.97
+   Because: energy similarity (+0.97)
+
+============================================================
+PROFILE: Deep Intense Rock
+Genre: rock | Mood: intense | Energy: 0.9
+============================================================
+1. Storm Runner by Voltline
+   Score: 3.99
+   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.99)
+
+2. Gym Hero by Max Pulse
+   Score: 1.97
+   Because: mood match (+1.0); energy similarity (+0.97)
+
+3. Electric Horizon by Pixel Current
+   Score: 0.98
+   Because: energy similarity (+0.98)
+
+4. Sunrise City by Neon Echo
+   Score: 0.92
+   Because: energy similarity (+0.92)
+
+5. Iron Pulse by Black Circuit
+   Score: 0.92
+   Because: energy similarity (+0.92)
+
+============================================================
+PROFILE: Conflicting Classical/Intense
+Genre: classical | Mood: intense | Energy: 0.95
+============================================================
+1. Quiet Strings by Aurora Hall
+   Score: 2.30
+   Because: genre match (+2.0); energy similarity (+0.30)
+
+2. Gym Hero by Max Pulse
+   Score: 1.98
+   Because: mood match (+1.0); energy similarity (+0.98)
+
+3. Storm Runner by Voltline
+   Score: 1.96
+   Because: mood match (+1.0); energy similarity (+0.96)
+
+4. Iron Pulse by Black Circuit
+   Score: 0.97
+   Because: energy similarity (+0.97)
+
+5. Electric Horizon by Pixel Current
+   Score: 0.93
+   Because: energy similarity (+0.93)
+```
 
 ---
 
