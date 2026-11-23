@@ -1,245 +1,51 @@
+# Model Card — VibeMatch 2.0: Self-Checking Music Recommender
 
-# 🎧 Model Card: Music Recommender Simulation
+## 1. Name and original project
 
-## 1. Model Name
+**Base:** CodePath AI 110 Module 3 *Music Recommender Simulation* (also documented as VibeMatch 1.0). It ranked 18 fictional songs using exact genre and mood matches plus energy similarity and displayed the top five with reasons. The original scorer is preserved in `src/recommender.py`.
 
-**VibeMatch 1.0**
+**Extension:** VibeMatch 2.0 adds a production-path reliability workflow in `src/workflow.py`: input/catalog guardrails, an evaluation step, a one-pass guarded retry when the top song fails both mood and energy checks, and visible quality/coverage notes. It remains a rule-based system rather than an LLM, generative model, or model trained on listening data.
 
----
+## 2. Intended use and how decisions are made
 
-## 2. Intended Use
+Use this educational recommender to explore how explicit song attributes shape rankings and how a reliability check can alter a misleading result. It accepts favorite genre, mood, and target energy on a 0–1 scale. The initial ranking assigns genre +2, mood +1, and energy similarity up to +1. A conflicting initial top song can trigger one alternative ranking with genre +1, mood +1, and energy similarity up to +2. It always retrieves recommendations from the known CSV catalog.
 
-VibeMatch 1.0 is a simple music recommendation system created for a classroom programming project. It recommends songs by comparing a user's preferred genre, mood, and energy level with the information stored for each song.
+**Status interpretation:** `PASS` means the top result meets the requested genre and mood and has energy within 0.30; `PARTIAL` means at least one requested feature is not met; `REVIEW` means the top result still conflicts with both mood and energy. These are **rule checks**, not measured accuracy, predictive certainty, or confidence percentages.
 
-The system assumes that the user can describe their taste using one favorite genre, one favorite mood, and one target energy level. It is intended for learning how recommendation systems use data, scoring, and ranking.
+## 3. Data, limitations, and biases — What are the limitations or biases in your system?
 
-This project should not be used as a real commercial music recommender. It should also not be used to make important decisions about people because it uses a small fictional dataset and a very simple scoring system.
+The dataset contains only 18 invented songs with a limited choice of genres and moods. It lacks real listener responses, lyrics, historical preferences, skipped songs, multilingual tags, demographic representation, and quality labels. As a result, it cannot establish whether people truly like the recommendations.
 
----
+Exact text comparisons can create narrow results: `chill`, `relaxed`, and `peaceful` are treated as different moods even where listeners might see them as similar. The original genre weight over-prioritizes exact genre, while the retry can over-prioritize energy. The 0.30 energy tolerance was chosen as a transparent engineering rule, **not** validated against human preferences. The system cannot invent an unavailable matching song and warns when catalog coverage is insufficient.
 
-## 3. How the Model Works
+## 4. Safety, misuse, and mitigation — Could your AI be misused, and how would you prevent that?
 
-Each user provides a favorite genre, favorite mood, and target energy level. The recommender compares those preferences with every song in the catalog.
+A misleading use would be to present a high numerical recommendation score as a probability of enjoyment or a definitive account of someone's musical preferences. The app avoids probabilistic claims and prints the components used to compute scores. It rejects missing or invalid inputs, non-finite or out-of-range energy, invalid top-k, empty or malformed catalogs, and duplicate song IDs. An unresolved mismatch gets a `PARTIAL` or `REVIEW` label instead of being silently treated as correct.
 
-A song receives 2 points when its genre matches the user's favorite genre. It receives 1 point when its mood matches the user's favorite mood. It can also receive up to 1 point depending on how close its energy is to the user's target energy.
+It should not be used for high-stakes personal profiling, automated screening, commercial claims of personalization quality, or decisions about people. This local exercise does not collect account identifiers or personal listening history. A public web service would need additional privacy and security review.
 
-After every song receives a score, the system sorts the songs from highest score to lowest score. It returns the five songs with the highest scores and explains which features contributed to each score.
+## 5. Reliability evidence — What surprised you while testing your AI's reliability?
 
----
+The concrete counterexample was `classical / intense / 0.95`: the old scorer ranked **Quiet Strings** (peaceful, 0.25 energy) first only because the classical match was heavily weighted. Automated testing confirms the new integrated quality check detects that mood-and-energy conflict and re-ranks to **Gym Hero** (intense, 0.93 energy). It also outputs a warning that no catalog song satisfies all three preferences. This illustrates that a plausible top-ranked result can conflict with a user's intention, and fixing one dimension does not necessarily fix every dimension.
 
-## 4. Data
+The three already well-matched example profiles remain unchanged at the top after the upgrade. Local automated testing produced **23 passing tests** (2 existing plus 21 new reliability-workflow cases). This confirms defined software behaviors, not real-world recommendation quality or accuracy. See `README.md` for the exact command, CLI evidence, and parseable evaluation table.
 
-The catalog contains 18 fictional songs. Each song includes:
+## 6. AI collaboration — How did AI help, what suggestion did you accept, and what did you reject or revise?
 
-- ID
-- Title
-- Artist
-- Genre
-- Mood
-- Energy
-- Tempo in BPM
-- Valence
-- Danceability
-- Acousticness
+During development I used ChatGPT to discuss the assignment checklist, understand the existing GitHub/VS Code workflow, design a reliability-focused extension, and help implement and test the new Python functionality. Suggestions and generated code were evaluated against the rubric and existing repository rather than treated as a substitute for program testing.
 
-The catalog includes genres such as pop, lofi, rock, ambient, jazz, classical, hip hop, electronic, folk, reggae, R&B, metal, and country.
+**Suggestion accepted:** I followed the recommendation to build on the existing Module 3 Music Recommender instead of creating an unrelated project. That preserved the working scoring system and gave the improvement a clear baseline.
 
-I expanded the starter dataset by adding eight new fictional songs. This created more variety, but the catalog is still very small. It does not represent every genre, mood, artist, language, or type of listener. Because the dataset has no actual listener ratings, it cannot provide ground-truth labels for measuring recommendation accuracy.
+**Suggestion rejected:** I chose *not* to implement optional stretch features, even after the assistant proposed pursuing the bonus points. I wanted to prioritize completing the documented, reproducible requirements of the main 21-point rubric.
 
----
+**Human review boundary:** The AI-assisted implementation and local test outputs are documented here, but the final evaluation of whether the recommendations are enjoyable requires actual listeners. I still need to review the submitted outputs and should revise this reflection if my own observations differ.
 
-## 5. Strengths
+## 7. Future improvements and trade-offs
 
-The recommender works well when the user's genre, mood, and energy preferences agree with one another. For example, the Chill Lofi profile correctly ranked calm lofi songs near the top.
+- Add more catalog coverage, including related mood and genre tags and language information.
+- Allow users to express priorities (genre, mood, energy) rather than switching fixed weights automatically.
+- Collect consent-based ratings and skips, then measure actual listener satisfaction on held-out sessions.
+- Test energy tolerance and ranking changes against diverse profiles, including cases where re-ranking makes a result worse.
+- Report calibrated uncertainty only if adequate evaluation data supports it.
 
-The system is easy to understand because each recommendation includes a score and specific reasons. It also produces different rankings for users with different preferences.
-
-The energy comparison works better than simply rewarding songs with the highest energy. It rewards songs that are closer to the particular energy level requested by the user.
-
----
-
-## 6. Limitations and Bias
-
-One weakness is that the recommender gives 2 of the 4 possible points for an exact genre match. During testing, this caused Quiet Strings to rank first for a user who requested classical music, an intense mood, and very high energy, even though the song had low energy and did not match the requested mood.
-
-The system also treats related moods such as chill, relaxed, and peaceful as completely different because it only uses exact text matches. This may create a filter bubble by repeatedly recommending songs from the selected genre instead of introducing suitable songs from related genres.
-
-The catalog is small and fictional. The scoring system does not currently use tempo, valence, danceability, acousticness, listening history, skipped songs, favorite artists, lyrics, or user feedback.
-
----
-
-## 7. Evaluation
-
-I tested the recommender with four different profiles:
-
-- High-Energy Pop
-- Chill Lofi
-- Deep Intense Rock
-- Conflicting Classical/Intense
-
-For each profile, I examined whether the top five songs matched the requested genre, mood, and energy level.
-
-The Chill Lofi profile produced the most intuitive results. Midnight Coding and Library Rain ranked first because they matched the lofi genre and chill mood while also having energy levels close to the target.
-
-The most surprising result came from the Conflicting Classical/Intense profile. Quiet Strings ranked first mainly because its classical genre match was worth 2 points, even though its mood and energy did not closely fit the user's other preferences.
-
-### Profile Comparisons
-
-**High-Energy Pop and Chill Lofi:**  
-The High-Energy Pop profile favored songs such as Sunrise City and Gym Hero because they had higher energy or pop-related matches. The Chill Lofi profile favored Midnight Coding and Library Rain because their lower energy, genre, and mood better matched calm study music.
-
-**Chill Lofi and Deep Intense Rock:**  
-The Chill Lofi profile preferred calm songs with energy near 0.40. The Deep Intense Rock profile favored Storm Runner and other high-energy songs. This difference makes sense because the profiles requested opposite genres, moods, and energy levels.
-
-**Deep Intense Rock and Conflicting Classical/Intense:**  
-Both profiles requested intense and energetic music, but their preferred genres were different. Storm Runner matched all three preferences for the rock profile. Quiet Strings ranked first for the classical profile because the strong genre weight overpowered its weaker mood and energy matches.
-
-**High-Energy Pop and Deep Intense Rock:**  
-Both profiles requested high energy, but `Sunrise City` ranked first for pop/happy while `Storm Runner` ranked first for rock/intense. Their different genre and mood matches made the difference.
-
-**High-Energy Pop and Conflicting Classical/Intense:**  
-Both requested energetic music. `Sunrise City` matched the pop user's genre and mood, while the classical user's high genre weight pushed the much calmer `Quiet Strings` into first place.
-
-**Chill Lofi and Conflicting Classical/Intense:**  
-`Midnight Coding` matched the chill user's genre, mood, and energy, but `Quiet Strings` ranked first for the conflicting user mainly because of its genre. The second profile showed that matching one feature can be misleading.
-
-### Weight-Shift Experiment
-
-I temporarily reduced the genre match from 2 points to 1 point and increased energy similarity from a maximum of 1 point to a maximum of 2 points.
-
-After the change, high-energy intense songs ranked above Quiet Strings for the conflicting profile. This result seemed more accurate for that user because the requested energy was 0.95.
-
-For the conflicting profile, the top three changed as follows:
-
-```text
-Original:                        Increased energy weight:
-1. Quiet Strings — 2.30         1. Gym Hero — 2.96
-2. Gym Hero — 1.98              2. Storm Runner — 2.92
-3. Storm Runner — 1.96          3. Iron Pulse — 1.94
-```
-
-However, the experimental weights may be less accurate for users who care more about genre than energy. This showed that changing weights can improve one type of recommendation while making another type less accurate.
-
-### Recommendation Outputs
-
-```text
-Loaded songs: 18
-
-============================================================
-PROFILE: High-Energy Pop
-Genre: pop | Mood: happy | Energy: 0.9
-============================================================
-1. Sunrise City by Neon Echo
-   Score: 3.92
-   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.92)
-
-2. Gym Hero by Max Pulse
-   Score: 2.97
-   Because: genre match (+2.0); energy similarity (+0.97)
-
-3. Rooftop Lights by Indigo Parade
-   Score: 1.86
-   Because: mood match (+1.0); energy similarity (+0.86)
-
-4. Storm Runner by Voltline
-   Score: 0.99
-   Because: energy similarity (+0.99)
-
-5. Electric Horizon by Pixel Current
-   Score: 0.98
-   Because: energy similarity (+0.98)
-
-============================================================
-PROFILE: Chill Lofi
-Genre: lofi | Mood: chill | Energy: 0.4
-============================================================
-1. Midnight Coding by LoRoom
-   Score: 3.98
-   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.98)
-
-2. Library Rain by Paper Lanterns
-   Score: 3.95
-   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.95)
-
-3. Focus Flow by LoRoom
-   Score: 3.00
-   Because: genre match (+2.0); energy similarity (+1.00)
-
-4. Spacewalk Thoughts by Orbit Bloom
-   Score: 1.88
-   Because: mood match (+1.0); energy similarity (+0.88)
-
-5. Coffee Shop Stories by Slow Stereo
-   Score: 0.97
-   Because: energy similarity (+0.97)
-
-============================================================
-PROFILE: Deep Intense Rock
-Genre: rock | Mood: intense | Energy: 0.9
-============================================================
-1. Storm Runner by Voltline
-   Score: 3.99
-   Because: genre match (+2.0); mood match (+1.0); energy similarity (+0.99)
-
-2. Gym Hero by Max Pulse
-   Score: 1.97
-   Because: mood match (+1.0); energy similarity (+0.97)
-
-3. Electric Horizon by Pixel Current
-   Score: 0.98
-   Because: energy similarity (+0.98)
-
-4. Sunrise City by Neon Echo
-   Score: 0.92
-   Because: energy similarity (+0.92)
-
-5. Iron Pulse by Black Circuit
-   Score: 0.92
-   Because: energy similarity (+0.92)
-
-============================================================
-PROFILE: Conflicting Classical/Intense
-Genre: classical | Mood: intense | Energy: 0.95
-============================================================
-1. Quiet Strings by Aurora Hall
-   Score: 2.30
-   Because: genre match (+2.0); energy similarity (+0.30)
-
-2. Gym Hero by Max Pulse
-   Score: 1.98
-   Because: mood match (+1.0); energy similarity (+0.98)
-
-3. Storm Runner by Voltline
-   Score: 1.96
-   Because: mood match (+1.0); energy similarity (+0.96)
-
-4. Iron Pulse by Black Circuit
-   Score: 0.97
-   Because: energy similarity (+0.97)
-
-5. Electric Horizon by Pixel Current
-   Score: 0.93
-   Because: energy similarity (+0.93)
-```
-
----
-
-## 8. Future Work
-
-I would improve the system by using more of the available song features, including tempo, valence, danceability, and acousticness.
-
-I would also group related moods together so that words such as chill, relaxed, and peaceful can receive partial matching points instead of being treated as completely unrelated.
-
-A future version could learn from likes, skips, replay history, and favorite artists. I would also use a much larger catalog and add a diversity rule so the top recommendations do not all come from the same genre.
-
----
-
-## 9. Personal Reflection
-
-My biggest learning moment was understanding that a recommendation system can be built by scoring every option and then ranking the scores. Before this project, recommendation systems seemed much more mysterious. I learned that even a simple formula can produce results that feel personalized.
-
-AI tools helped me understand the scoring formula, write the Python functions, and troubleshoot errors. However, I still needed to double-check the suggested code against the starter files. For example, the starter `main.py` used different dictionary keys from the scoring function, which caused a `KeyError`. I also had to make sure the required return formats matched the rest of the project.
-
-I was surprised that such a small algorithm could produce recommendations that often felt reasonable. At the same time, the conflicting profile showed how easily the weights can create strange results. A song can rank first because of one strongly weighted feature even when the rest of its attributes do not fit the user.
-
-Next, I would add partial matches for related moods and genres, use more numerical features, and let the system learn from user feedback. I would also test it with a much larger and more realistic song catalog.
+The current design intentionally favors an easy-to-audit, bounded repair loop. Its status messages are honest about incomplete matches, and no generative model, model training, RAG, or agent tool calls are claimed.

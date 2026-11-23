@@ -1,0 +1,18 @@
+flowchart TD
+    A[User CLI input or four example profiles] --> B[Input guardrail: validate genre, mood, energy, top-k]
+    B -->|Invalid| ERR[Clear error and safe exit]
+    B -->|Valid| C[Read and validate data/songs.csv]
+    C -->|Missing or corrupt| ERR
+    C -->|Valid catalog| D[Original recommender: genre + mood + energy scoring]
+    D --> E[Sort and select initial top-k]
+    E --> F{Self-check: top song mismatches both mood and energy?}
+    F -->|Yes| G[One bounded retry: balanced scoring weights]
+    G --> H[Re-rank actual catalog songs]
+    F -->|No| H2[Keep original ranking]
+    H --> I[Final match and catalog-coverage checks]
+    H2 --> I
+    I --> J[Ranked songs + reasons + PASS/PARTIAL/REVIEW + notes]
+    J --> K[Human reviews recommendation quality]
+    T[pytest: valid / conflicting / invalid / CLI cases] -.-> B
+    T -.-> D
+    T -.-> I
