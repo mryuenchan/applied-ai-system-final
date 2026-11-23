@@ -38,7 +38,7 @@ During development I used ChatGPT to discuss the assignment checklist, understan
 
 **Suggestion rejected:** I chose *not* to implement optional stretch features, even after the assistant proposed pursuing the bonus points. I wanted to prioritize completing the documented, reproducible requirements of the main 21-point rubric.
 
-**Human review boundary:** The AI-assisted implementation and local test outputs are documented here, but the final evaluation of whether the recommendations are enjoyable requires actual listeners. I still need to review the submitted outputs and should revise this reflection if my own observations differ.
+Human Review: Although the system passed all 23 automated tests, these tests only confirm that the code behaves as expected. They do not prove that real listeners would enjoy the recommended songs. I reviewed the system's outputs and confirmed that the self-checking feature works as intended, but evaluating actual listener satisfaction would require feedback from real users.
 
 ## 7. Future improvements and trade-offs
 
